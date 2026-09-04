@@ -2,7 +2,7 @@
   "schema_version": 1,
   "id": "release-0.1.1",
   "title": "Reconcile fresh cloned workspaces before hosted verification",
-  "stage": "verified",
+  "stage": "released",
   "files": [
     "intent.md",
     "spec.md",
@@ -18,7 +18,8 @@
     ],
     "verification": [
       "39 regression tests passed.",
-      "Installed 0.1.1 wheel passed real clone reconstruction, verification, repeat idempotency and clean worktree acceptance."
+      "Installed 0.1.1 wheel passed real clone reconstruction, verification, repeat idempotency and clean worktree acceptance.",
+      "Published v0.1.1 release workflow 33925537196 passed all jobs. Downloaded asset checksum and independent installed-wheel fresh-clone acceptance passed. A separate private instance hosted workflow passed."
     ],
     "independent_review": [
       "Read-only independent review confirmed the clone proof and that generated CI does not enable remote creation; no blocking findings."

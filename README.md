@@ -30,7 +30,7 @@ python3.11 -m venv .venv
 
 Activate the virtual environment or use its absolute `cac` executable when working in the new project. With pipx, `pipx install 'git+https://github.com/nielslindor/CaC.git@v0.1.1'` exposes `cac` directly. No API key is needed for the engine.
 
-The first initialization creates a local Git repository. It neither commits nor uploads your files. Repeat apply returns no changes. Open the new folder in Codex or VS Code; review and trust project instructions using the host's normal controls. Native agent dispatch requires a capable host and its own authentication. The CLI itself makes no language-model calls.
+The first initialization creates a local Git repository. It neither commits nor uploads your files. Repeat apply returns no changes. Open the new folder in Codex or VS Code; review and trust project instructions using the host's normal controls. Native agent dispatch requires a capable host and its own authentication. The generated investigator and reviewer roles were exercised with Codex CLI 0.153.3; use a current host compatible with your selected model. The CLI itself makes no language-model calls.
 
 ## What is included
 
