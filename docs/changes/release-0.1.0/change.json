@@ -21,7 +21,8 @@
     "verification": [
       "39 integrated regression tests passed locally.",
       "Wheel-installed bootstrap, idempotency, drift refusal and false completion refusal passed.",
-      "Real private GitHub repository creation, unchanged repeat apply and visibility readback passed."
+      "Real private GitHub repository creation, unchanged repeat apply and visibility readback passed.",
+      "Hosted CI passed Python 3.11/3.13 on Linux, Python 3.11 on macOS, and independent wheel bootstrap. Source archive owner metadata is normalized and inspected."
     ],
     "independent_review": [
       "Read-only containment and remote-safety review found Git metadata symlink and interrupted seed-recovery gaps; primary repaired them with integration regressions.",
@@ -33,6 +34,6 @@
       "Confirm release assets, CI conclusion, repository visibility and private instance readback after publishing."
     ],
     "unresolved_blocking_findings": [],
-    "source_tree_digest": "8dc9e18a3919e26e2a1c2732c3493290aec28ea55838ff6fea5e7ffe90c9054d"
+    "source_tree_digest": "8bd3ad118ac886b563ae0c9d78c55ffe9b0b37eff27b729299e32ced3dda9697"
   }
 }
