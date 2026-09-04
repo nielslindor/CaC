@@ -1,0 +1,15 @@
+name: Outcome or provider proposal
+description: Propose a testable outcome and bounded scope.
+body:
+  - type: textarea
+    id: outcome
+    attributes:
+      label: User outcome and completion test
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope, constraints and provider effects
+    validations:
+      required: true

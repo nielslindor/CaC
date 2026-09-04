@@ -1,0 +1,3 @@
+# Specification
+
+Python 3.11+ on macOS and Linux; no runtime third-party dependency. A strict cac/v1 JSON manifest describes text files, directories, initial Git branch and optional GitHub identity/visibility. Preview is read-only. Apply preserves unrelated files and refuses conflicts. Repeated apply does not churn resources or ownership hashes. Verify checks actual desired files, directories and Git, independent of a disposable local cache. SDLC gates reject fabricated empty completion records. Public package templates include working host roles and review workflow; no native cloud resource provisioning is claimed.

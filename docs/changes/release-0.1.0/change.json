@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "id": "release-0.1.0",
+  "title": "Ship the declarative workspace engine and executable SDLC",
+  "stage": "verified",
+  "files": [
+    "intent.md",
+    "spec.md",
+    "plan.md",
+    "verification.md",
+    "release.md"
+  ],
+  "evidence": {
+    "acceptance_criteria": [
+      "A wheel-installed toolkit initializes a real independent Git workspace with all templates.",
+      "A second apply changes no files or state and local drift is refused.",
+      "Unsafe paths, Git metadata symlinks, malformed records and wrong remote identities fail safely.",
+      "SDLC evidence gates require actual verification and independent review.",
+      "The public release and separate private instance are read back at their authorized visibility."
+    ],
+    "verification": [
+      "39 integrated regression tests passed locally.",
+      "Wheel-installed bootstrap, idempotency, drift refusal and false completion refusal passed.",
+      "Real private GitHub repository creation, unchanged repeat apply and visibility readback passed."
+    ],
+    "independent_review": [
+      "Read-only containment and remote-safety review found Git metadata symlink and interrupted seed-recovery gaps; primary repaired them with integration regressions.",
+      "Separate lifecycle/gauntlet repair and review expanded strict schemas, historical evidence semantics and scanner coverage."
+    ],
+    "release_reference": "https://github.com/nielslindor/CaC/releases/tag/v0.1.0",
+    "rollback_operations": [
+      "Restore a reviewed manifest/source version in a branch; plan, apply, verify; preserve local changes and provider resources.",
+      "Confirm release assets, CI conclusion, repository visibility and private instance readback after publishing."
+    ],
+    "unresolved_blocking_findings": [],
+    "source_tree_digest": "8dc9e18a3919e26e2a1c2732c3493290aec28ea55838ff6fea5e7ffe90c9054d"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {"label": "CaC: plan", "type": "process", "command": "cac", "args": ["plan"], "problemMatcher": []},
+    {"label": "CaC: verify", "type": "process", "command": "cac", "args": ["verify"], "problemMatcher": []},
+    {"label": "CaC: gauntlet", "type": "process", "command": "cac", "args": ["gauntlet"], "group": "test", "problemMatcher": []}
+  ]
+}

@@ -1,0 +1,16 @@
+name: Bug report
+description: Report reproducible incorrect behavior without secrets or private data.
+body:
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected and observed behavior
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal reproduction and version
+      description: Include only generic, redacted input and the toolkit/Python/OS versions.
+    validations:
+      required: true

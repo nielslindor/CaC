@@ -1,0 +1,10 @@
+include README.md LICENSE SECURITY.md CONTRIBUTING.md CHANGELOG.md AGENTS.md AGENT-WORKFLOW.md WORKBOARD.md cac.json
+recursive-include src/codexascode/templates *
+recursive-include docs *.md *.json
+recursive-include tools *.py
+recursive-include tests *.py
+recursive-include .codex *.toml
+recursive-include .agents *.md
+recursive-include .github *.yml *.md
+recursive-include .vscode *.json
+global-exclude *.pyc .DS_Store

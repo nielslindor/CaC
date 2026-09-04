@@ -1,0 +1,6 @@
+[agents]
+enabled = true
+max_concurrent_threads_per_session = 4
+
+# Inherit the user's selected model, provider, reasoning and permission settings.
+# Project configuration is loaded only when the project is trusted by the host.
