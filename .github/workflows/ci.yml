@@ -39,4 +39,4 @@ jobs:
         with:
           python-version: '3.11'
       - run: python -m pip wheel --no-deps . --wheel-dir dist
-      - run: python tools/smoke.py --wheel dist/codexascode-0.1.0-py3-none-any.whl
+      - run: python tools/smoke.py --wheel dist/codexascode-0.1.1-py3-none-any.whl

@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "id": "release-0.1.1",
+  "title": "Reconcile fresh cloned workspaces before hosted verification",
+  "stage": "verified",
+  "files": [
+    "intent.md",
+    "spec.md",
+    "plan.md",
+    "verification.md",
+    "release.md"
+  ],
+  "evidence": {
+    "acceptance_criteria": [
+      "Generated CI applies declared local configuration before verification without enabling remote creation.",
+      "A wheel-installed engine reconstructs an actual Git clone, verifies it and then reports no changes.",
+      "The private instance hosted workflow passes after adopting the patch."
+    ],
+    "verification": [
+      "39 regression tests passed.",
+      "Installed 0.1.1 wheel passed real clone reconstruction, verification, repeat idempotency and clean worktree acceptance."
+    ],
+    "independent_review": [
+      "Read-only independent review confirmed the clone proof and that generated CI does not enable remote creation; no blocking findings."
+    ],
+    "release_reference": "https://github.com/nielslindor/CaC/releases/tag/v0.1.1",
+    "rollback_operations": [
+      "Restore reviewed prior manifest content and source; inspect plan and state; retain the original release tag."
+    ],
+    "unresolved_blocking_findings": [],
+    "source_tree_digest": "1ff3b9c54e40cc7d6b300098c22acdb36ce9044807340b3947c65401b2217965"
+  }
+}

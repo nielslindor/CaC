@@ -19,7 +19,9 @@ jobs:
         run: python -m pip install 'git+https://github.com/nielslindor/CaC.git@v{{version}}'
       - name: Check workspace and lifecycle records
         run: cac gauntlet --root .
-      - name: Verify managed configuration
+      - name: Reconcile and verify cloned workspace
         env:
           GH_TOKEN: ${{ github.token }}
-        run: cac verify --root .
+        run: |
+          cac apply --root .
+          cac verify --root .

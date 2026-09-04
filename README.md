@@ -8,7 +8,7 @@ Version 0.1 provides a working workspace and repository provider. It gives infra
 
 ## Tell your agent: “Use this”
 
-> Use https://github.com/nielslindor/CaC at release v0.1.0. Read its AGENTS.md and docs/USE-THIS.md. Initialize a separate workspace for my project, inspect the plan, apply and verify it. Use its SDLC and multiple agents with disjoint ownership. Keep my private context out of the toolkit. Create at least a local Git repository; use my chosen host and visibility for a remote.
+> Use https://github.com/nielslindor/CaC at release v0.1.1. Read its AGENTS.md and docs/USE-THIS.md. Initialize a separate workspace for my project, inspect the plan, apply and verify it. Use its SDLC and multiple agents with disjoint ownership. Keep my private context out of the toolkit. Create at least a local Git repository; use my chosen host and visibility for a remote.
 
 The agent instructions are [here](docs/USE-THIS.md). They include the actual install and acceptance path.
 
@@ -17,7 +17,7 @@ The agent instructions are [here](docs/USE-THIS.md). They include the actual ins
 Requires **Python 3.11+ and Git** on macOS or Linux. GitHub CLI is optional. Native Windows is not supported in v0.1 because the engine uses POSIX file locks; use WSL.
 
 ```sh
-git clone --branch v0.1.0 https://github.com/nielslindor/CaC.git
+git clone --branch v0.1.1 https://github.com/nielslindor/CaC.git
 cd CaC
 python3.11 -m venv .venv
 .venv/bin/python -m pip install .
@@ -28,7 +28,7 @@ python3.11 -m venv .venv
 .venv/bin/cac gauntlet --root ../my-project --json
 ```
 
-Activate the virtual environment or use its absolute `cac` executable when working in the new project. With pipx, `pipx install 'git+https://github.com/nielslindor/CaC.git@v0.1.0'` exposes `cac` directly. No API key is needed for the engine.
+Activate the virtual environment or use its absolute `cac` executable when working in the new project. With pipx, `pipx install 'git+https://github.com/nielslindor/CaC.git@v0.1.1'` exposes `cac` directly. No API key is needed for the engine.
 
 The first initialization creates a local Git repository. It neither commits nor uploads your files. Repeat apply returns no changes. Open the new folder in Codex or VS Code; review and trust project instructions using the host's normal controls. Native agent dispatch requires a capable host and its own authentication. The CLI itself makes no language-model calls.
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.1
+
+- Reconcile declared local state before verifying a generated workspace in CI, restoring empty directories omitted by Git clones.
+- Exercise a real Git clone in the installed-package acceptance test, including successful reconciliation, verification and an unchanged second apply.
+- Preserve the explicit boundary against remote creation in generated CI.
+- Pin a patched build backend to address GHSA-h35f-9h28-mq5c, affecting source archive exclusions on macOS.
+
 ## 0.1.0
 
 - Declarative workspace manifest with conflict-aware filesystem reconciliation, ownership hashes and local writer locking.
