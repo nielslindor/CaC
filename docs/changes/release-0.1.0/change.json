@@ -2,7 +2,7 @@
   "schema_version": 1,
   "id": "release-0.1.0",
   "title": "Ship the declarative workspace engine and executable SDLC",
-  "stage": "verified",
+  "stage": "released",
   "files": [
     "intent.md",
     "spec.md",
