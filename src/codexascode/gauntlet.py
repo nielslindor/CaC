@@ -25,6 +25,8 @@ _PATTERNS = [
 _MD_LINK = re.compile(r"!?(?:\[[^\]]*\])\(([^)\s]+)(?:\s+['\"][^)]*)?\)")
 _AGENT_KEYS = {"name", "description", "developer_instructions", "sandbox_mode"}
 _AGENT_REQUIRED = {"name", "description", "developer_instructions"}
+_POLICY_NAME = "cac-policy.json"
+_PROFILES = {"workspace", "public"}
 
 
 def _safe_root(root: str | Path) -> Path:
@@ -98,6 +100,40 @@ def _link_target_is_safe(root: Path, source: Path, link: str) -> bool:
     return candidate.exists() and not candidate.is_symlink()
 
 
+def _policy_profile(root: Path, override: str | None) -> tuple[str | None, bool]:
+    """Return the selected profile and whether the policy was valid.
+
+    A policy is deliberately tiny and strict.  In particular, a malformed
+    policy cannot be bypassed by supplying an API or CLI override.
+    """
+    policy = root / _POLICY_NAME
+    if policy.is_symlink() or (policy.exists() and not policy.is_file()):
+        return None, False
+    if policy.exists():
+        try:
+            value = json.loads(policy.read_text(encoding="utf-8"))
+        except (OSError, UnicodeError, json.JSONDecodeError):
+            return None, False
+        schema_version = value.get("schema_version") if isinstance(value, dict) else None
+        policy_profile = value.get("profile") if isinstance(value, dict) else None
+        if (
+            not isinstance(value, dict)
+            or set(value) != {"schema_version", "profile"}
+            or isinstance(schema_version, bool)
+            or not isinstance(schema_version, int)
+            or schema_version != 1
+            or not isinstance(policy_profile, str)
+            or policy_profile not in _PROFILES
+        ):
+            return None, False
+        selected = policy_profile
+    else:
+        selected = "public"
+    if override is not None and (not isinstance(override, str) or override not in _PROFILES):
+        return None, False
+    return override or selected, True
+
+
 def _lifecycle_checks(root: Path, checks: list[dict[str, str]], failures: list[dict[str, str]]) -> None:
     changes = root / "docs" / "changes"
     if changes.is_symlink():
@@ -129,18 +165,25 @@ def _lifecycle_checks(root: Path, checks: list[dict[str, str]], failures: list[d
             failures.extend({"rule": "lifecycle:" + reason, "path": relative} for reason in reasons)
 
 
-def run_gauntlet(root: str | Path = ".", run_tests: bool = False) -> dict[str, Any]:
+def run_gauntlet(root: str | Path = ".", run_tests: bool = False, *, profile: str | None = None) -> dict[str, Any]:
     failures: list[dict[str, Any]] = []
     checks: list[dict[str, str]] = []
     try:
         root_path = _safe_root(root)
         digest = source_digest(root_path)
     except (OSError, ValueError):
-        return {"status": "fail", "source_tree_digest": None, "checks": checks, "failures": [{"rule": "root", "path": str(root)}]}
+        return {"status": "fail", "source_tree_digest": None, "profile": None, "checks": checks, "failures": [{"rule": "root", "path": str(root)}]}
+    selected_profile, valid_policy = _policy_profile(root_path, profile)
+    if not valid_policy:
+        return {"status": "fail", "source_tree_digest": digest, "profile": None, "checks": checks, "failures": [{"rule": "policy", "path": _POLICY_NAME}]}
+    workspace = selected_profile == "workspace"
     for path, kind in _files(root_path):
         relative = path.relative_to(root_path).as_posix()
         if kind:
             failures.append({"rule": "symlink", "path": relative})
+            continue
+        if not path.is_file():
+            failures.append({"rule": "nonregular-file", "path": relative})
             continue
         if _SENSITIVE.search(relative):
             failures.append({"rule": "sensitive-filename", "path": relative})
@@ -150,20 +193,40 @@ def run_gauntlet(root: str | Path = ".", run_tests: bool = False) -> dict[str, A
             failures.append({"rule": "io", "path": relative})
             continue
         if b"\0" in content:
-            failures.append({"rule": "unexpected-binary", "path": relative})
+            if workspace:
+                if path.suffix in {".json", ".toml"}:
+                    failures.append({"rule": "parse", "path": relative})
+                else:
+                    checks.append({"rule": "binary-content", "path": relative, "status": "not-scanned"})
+            else:
+                failures.append({"rule": "unexpected-binary", "path": relative})
             continue
         try:
             text = content.decode("utf-8")
         except UnicodeDecodeError:
-            failures.append({"rule": "unexpected-binary", "path": relative})
+            if workspace:
+                if path.suffix in {".json", ".toml"}:
+                    failures.append({"rule": "parse", "path": relative})
+                else:
+                    checks.append({"rule": "binary-content", "path": relative, "status": "not-scanned"})
+            else:
+                failures.append({"rule": "unexpected-binary", "path": relative})
             continue
         for line_number, line in enumerate(text.splitlines(), 1):
             for rule, pattern in _PATTERNS:
+                if workspace and rule in {"home-absolute", "private-ip"}:
+                    continue
                 if pattern.search(line):
                     failures.append({"rule": rule, "path": relative, "line": line_number})
             if path.suffix.lower() in {".md", ".markdown"}:
                 for link in _MD_LINK.findall(line):
                     if link.startswith(("#", "http://", "https://", "mailto:", "ftp://")):
+                        continue
+                    if Path(link.split("#", 1)[0]).is_absolute():
+                        if workspace:
+                            checks.append({"rule": "markdown-link", "path": relative, "status": "not-checked"})
+                        else:
+                            failures.append({"rule": "markdown-link", "path": relative, "line": line_number})
                         continue
                     if not _link_target_is_safe(root_path, path, link):
                         failures.append({"rule": "markdown-link", "path": relative, "line": line_number})
@@ -198,7 +261,7 @@ def run_gauntlet(root: str | Path = ".", run_tests: bool = False) -> dict[str, A
             except OSError:
                 checks.append({"rule": "tests", "status": "error"})
                 failures.append({"rule": "tests", "path": "tests"})
-    return {"status": "fail" if failures else "pass", "source_tree_digest": digest, "checks": checks, "failures": failures}
+    return {"status": "fail" if failures else "pass", "source_tree_digest": digest, "profile": selected_profile, "checks": checks, "failures": failures}
 
 
 def register_subcommands(subparsers: Any) -> None:
@@ -206,8 +269,9 @@ def register_subcommands(subparsers: Any) -> None:
     parser.add_argument("--root", default=".")
     parser.add_argument("--json", action="store_true")
     parser.add_argument("--tests", action="store_true")
+    parser.add_argument("--profile", choices=sorted(_PROFILES))
     def run(args: Any) -> int:
-        result = run_gauntlet(args.root, args.tests)
+        result = run_gauntlet(args.root, args.tests, profile=args.profile)
         print(json.dumps(result, indent=2, sort_keys=True) if args.json else f"{result['status']}: {len(result['failures'])} failure(s)")
         return 0 if result["status"] == "pass" else 1
     parser.set_defaults(func=run)

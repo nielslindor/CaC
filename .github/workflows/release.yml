@@ -28,7 +28,7 @@ jobs:
           python -c 'import os, codexascode; assert os.environ["RELEASE_TAG"] == "v" + codexascode.__version__'
           cac change check "release-${RELEASE_TAG#v}" --stage released
       - run: python tools/package.py
-      - run: python tools/smoke.py --wheel dist/codexascode-0.1.1-py3-none-any.whl
+      - run: python tools/smoke.py --wheel dist/codexascode-0.1.2-py3-none-any.whl
       - name: Generate checksums
         run: sha256sum dist/*.whl dist/*.tar.gz > dist/SHA256SUMS
       - name: Publish verified packages

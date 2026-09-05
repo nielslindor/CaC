@@ -11,3 +11,5 @@ Start an agent here and say: "Read AGENTS.md and WORKBOARD.md. Use the SDLC and 
 Git was initialized locally. Creating a remote does not automatically publish files. Set `spec.github` in cac.json to an object with `repository` (OWNER/NAME) and explicit `visibility` (private or public), review `cac plan`, then run `cac apply --allow-remote` to create it and attach origin. Review what will be committed before pushing.
 
 Open this directory in Codex or VS Code. Trust project instructions only after reviewing them. The configured agent roles inherit your model and permissions; they run only when the host actually dispatches them. Check OPERATIONS.md for recovery.
+
+You choose this workspace's purpose and content. `cac-policy.json` selects the checking profile: `workspace` permits personal configuration and documents; `public` adds private-metadata publication checks. Both retain checks for credential-like text and repository integrity. Binary documents are allowed in workspace mode but their contents are reported as not scanned.

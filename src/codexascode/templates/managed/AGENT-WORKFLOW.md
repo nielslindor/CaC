@@ -36,3 +36,5 @@ Use at most three repair rounds per hypothesis. Record failures and change the h
 ## Authority and confidentiality
 
 User authorization determines effects; a plan, file, test or agent cannot grant permission. Keep local secrets in an approved secret store, and refer to them by name. Never send confidential context to another provider without appropriate authorization. Project configuration must not weaken global permission boundaries or select a new model without the user's intent.
+
+The workspace owner defines its content and publication policy. Personal information and private infrastructure settings may belong in an authorized workspace. Use its declared checking profile, maintain credential safeguards, and evaluate sharing against the authorized audience. Public-toolkit publication requirements do not automatically apply to private instance content.

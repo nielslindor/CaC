@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "id": "release-0.1.2",
+  "title": "Respect workspace owners content policy",
+  "stage": "verified",
+  "files": [
+    "intent.md",
+    "spec.md",
+    "plan.md",
+    "verification.md",
+    "release.md"
+  ],
+  "evidence": {
+    "acceptance_criteria": [
+      "Private instance ordinary checks accept owner-selected personal configuration.",
+      "Credential-like text and malformed policy still fail; public profile still catches private metadata.",
+      "Managed instructions and ignore rules match owner intent after repeat apply and hosted verification."
+    ],
+    "verification": [
+      "45 integrated regression tests passed; installed 0.1.2 wheel bootstrap, drift refusal, lifecycle refusal and fresh clone acceptance passed.",
+      "An actual private instance accepted synthetic personal configuration and a binary document, retained credential detection, and kept private/ trackable."
+    ],
+    "independent_review": [
+      "Independent read-only reviewer inspected content-policy scope, malformed-policy behavior and scanner containment; no blocking findings."
+    ],
+    "release_reference": "https://github.com/nielslindor/CaC/releases/tag/v0.1.2",
+    "rollback_operations": [
+      "Restore a reviewed prior manifest and profile, plan/apply/verify, retaining private material and existing release tags."
+    ],
+    "unresolved_blocking_findings": [],
+    "source_tree_digest": "92749ce1118a1b6ea3f080dc578fc4749415c1d8b94a7197aa6f6569c1ec2793"
+  }
+}
