@@ -2,7 +2,7 @@
   "schema_version": 1,
   "id": "release-0.1.2",
   "title": "Respect workspace owners content policy",
-  "stage": "verified",
+  "stage": "released",
   "files": [
     "intent.md",
     "spec.md",
@@ -18,7 +18,8 @@
     ],
     "verification": [
       "45 integrated regression tests passed; installed 0.1.2 wheel bootstrap, drift refusal, lifecycle refusal and fresh clone acceptance passed.",
-      "An actual private instance accepted synthetic personal configuration and a binary document, retained credential detection, and kept private/ trackable."
+      "An actual private instance accepted synthetic personal configuration and a binary document, retained credential detection, and kept private/ trackable.",
+      "Release workflow 33932567041 passed. Published wheel installed with SHA-256 4096f1532415b41d56551a1f330d3adbfab9512103ce1d7e1985a03c9f159f94. Installed-version personal content acceptance and credential redaction passed; independent instance hosted CI selected workspace and passed."
     ],
     "independent_review": [
       "Independent read-only reviewer inspected content-policy scope, malformed-policy behavior and scanner containment; no blocking findings."
