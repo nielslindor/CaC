@@ -12,4 +12,3 @@ __pycache__/
 *.tfstate.*
 .terraform/
 *.tfplan
-private/

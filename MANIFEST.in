@@ -1,4 +1,4 @@
-include README.md LICENSE SECURITY.md CONTRIBUTING.md CHANGELOG.md AGENTS.md AGENT-WORKFLOW.md WORKBOARD.md cac.json
+include README.md LICENSE SECURITY.md CONTRIBUTING.md CHANGELOG.md AGENTS.md AGENT-WORKFLOW.md WORKBOARD.md cac.json cac-policy.json
 recursive-include src/codexascode/templates *
 recursive-include docs *.md *.json
 recursive-include tools *.py

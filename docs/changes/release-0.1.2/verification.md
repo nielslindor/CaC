@@ -1,0 +1,3 @@
+# Verification
+
+The integrated regression suite and installed-wheel acceptance exercise owner profiles, personal paths and private addresses, binary document reporting, credential refusal/redaction, malformed policy and structured configuration, containment and existing lifecycle checks. A temporary representative personal configuration was accepted inside an actual private instance; explicit public checking detected its private metadata, and a fake credential still failed without echoing its value. The private directory was eligible for Git. Independent source review found no blocking issue. Hosted release and instance checks are the remaining delivery observations.

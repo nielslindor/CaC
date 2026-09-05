@@ -29,6 +29,66 @@ class GauntletTests(unittest.TestCase):
         failed = run_gauntlet(self.root)
         self.assertIn("unexpected-binary", {item["rule"] for item in failed["failures"]})
 
+    def test_profiles_persisted_override_and_credentials(self):
+        (self.root / "local.txt").write_text("/" + "Users" + "/example/private " + "10." + "2.3.4\n")
+        self.assertEqual(run_gauntlet(self.root)["profile"], "public")
+        self.assertEqual(run_gauntlet(self.root)["status"], "fail")
+        (self.root / "cac-policy.json").write_text(json.dumps({"schema_version": 1, "profile": "workspace"}))
+        workspace = run_gauntlet(self.root)
+        self.assertEqual(workspace["profile"], "workspace")
+        self.assertEqual(workspace["status"], "pass")
+        (self.root / "token.txt").write_text("ghp_" + "x" * 24)
+        self.assertIn("token", {item["rule"] for item in run_gauntlet(self.root)["failures"]})
+        self.assertEqual(run_gauntlet(self.root, profile="public")["profile"], "public")
+
+    def test_invalid_policy_fails_closed_even_with_override(self):
+        invalid_values = (
+            '{"schema_version": 2, "profile": "workspace"}',
+            '{"schema_version": 1, "profile": "workspace", "extra": true}',
+            '{"schema_version": true, "profile": "workspace"}',
+            '{"schema_version": 1, "profile": []}',
+        )
+        for value in invalid_values:
+            (self.root / "cac-policy.json").write_text(value)
+            result = run_gauntlet(self.root, profile="public")
+            self.assertEqual(result["status"], "fail")
+            self.assertEqual(result["failures"], [{"rule": "policy", "path": "cac-policy.json"}])
+            self.assertIsNone(result["profile"])
+
+        policy = self.root / "cac-policy.json"
+        policy.unlink()
+        policy.mkdir()
+        result = run_gauntlet(self.root, profile="public")
+        self.assertEqual(result["failures"], [{"rule": "policy", "path": "cac-policy.json"}])
+        policy.rmdir()
+        target = self.root / "policy-target.json"
+        target.write_text('{"schema_version": 1, "profile": "public"}')
+        policy.symlink_to(target)
+        result = run_gauntlet(self.root, profile="workspace")
+        self.assertEqual(result["failures"], [{"rule": "policy", "path": "cac-policy.json"}])
+
+    def test_workspace_binary_and_absolute_markdown_link_are_not_scanned(self):
+        (self.root / "cac-policy.json").write_text('{"schema_version": 1, "profile": "workspace"}')
+        (self.root / "document.bin").write_bytes(b"binary\x00secret")
+        (self.root / "readme.md").write_text("[outside](" + "/" + "Users" + "/example/private/file.txt)\n")
+        result = run_gauntlet(self.root)
+        self.assertEqual(result["status"], "pass")
+        checks = {(item["rule"], item["path"], item["status"]) for item in result["checks"]}
+        self.assertIn(("binary-content", "document.bin", "not-scanned"), checks)
+        self.assertIn(("markdown-link", "readme.md", "not-checked"), checks)
+
+    def test_workspace_binary_structured_files_still_fail_parse(self):
+        (self.root / "cac-policy.json").write_text('{"schema_version": 1, "profile": "workspace"}')
+        (self.root / "broken.json").write_bytes(b'{"broken":\x00')
+        reviewer = self.root / ".codex/agents/reviewer.toml"
+        reviewer.parent.mkdir(parents=True)
+        reviewer.write_bytes(b'name = "reviewer"\x00')
+        result = run_gauntlet(self.root)
+        self.assertEqual(result["status"], "fail")
+        parse_paths = {item["path"] for item in result["failures"] if item["rule"] == "parse"}
+        self.assertIn("broken.json", parse_paths)
+        self.assertIn(".codex/agents/reviewer.toml", parse_paths)
+
     def test_symlink_root_docs_and_ignored_egg_info(self):
         outside = self.root / ".venv" / "outside"
         outside.mkdir(parents=True)

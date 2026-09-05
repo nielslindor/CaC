@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.2
+
+- Separate owner-selected workspace content checks from public publication checks.
+- Permit personal paths, private network configuration and binary documents in workspace mode; retain credential-like text and integrity checks.
+- Remove the generic personal-data ban, unqualified provider-sharing prohibition and blanket private-directory exclusion from generated workspaces.
+- Persist profile selection in cac-policy.json; report binary contents as not scanned.
+
 ## 0.1.1
 
 - Reconcile declared local state before verifying a generated workspace in CI, restoring empty directories omitted by Git clones.
