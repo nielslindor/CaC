@@ -9,6 +9,8 @@ import re
 from pathlib import Path
 from typing import Any
 
+from .policy import excluded, load_policy
+
 _STAGES = ("planned", "verified", "released")
 _RECORD_STAGES = ("draft",) + _STAGES
 _MARKDOWN_FILES = ("intent.md", "spec.md", "plan.md", "verification.md", "release.md")
@@ -62,6 +64,10 @@ def _ignored_directory(parts: tuple[str, ...]) -> bool:
 def source_digest(root: str | Path) -> str:
     """Digest source inputs while pruning generated and local-only paths."""
     root_path = _root(root)
+    try:
+        _, local_roots = load_policy(root_path)
+    except ValueError as exc:
+        raise ValueError(str(exc)) from exc
     digest = hashlib.sha256()
     records: list[tuple[str, bytes]] = []
     for current, directories, files in os.walk(root_path, topdown=True, followlinks=False):
@@ -70,7 +76,8 @@ def source_digest(root: str | Path) -> str:
         kept: list[str] = []
         for directory in directories:
             candidate = current_path / directory
-            if candidate.is_symlink() or _ignored_directory(relative_current.parts + (directory,)):
+            relative_directory = (relative_current / directory).as_posix() if relative_current.parts else directory
+            if candidate.is_symlink() or _ignored_directory(relative_current.parts + (directory,)) or excluded(relative_directory, local_roots):
                 continue
             kept.append(directory)
         directories[:] = kept
@@ -81,7 +88,7 @@ def source_digest(root: str | Path) -> str:
             if path.is_symlink() or not path.is_file():
                 continue
             relative = path.relative_to(root_path)
-            if _ignored_directory(relative.parts):
+            if _ignored_directory(relative.parts) or excluded(relative.as_posix(), local_roots):
                 continue
             try:
                 records.append((relative.as_posix(), path.read_bytes()))

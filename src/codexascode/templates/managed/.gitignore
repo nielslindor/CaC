@@ -12,3 +12,6 @@ __pycache__/
 *.tfstate.*
 .terraform/
 *.tfplan
+
+# Separately owned native task payloads.
+/chats/loose/

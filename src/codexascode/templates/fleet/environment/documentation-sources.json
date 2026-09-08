@@ -1,0 +1,9 @@
+{
+  "sources": [
+    {"url": "https://learn.chatgpt.com/docs/config-file/config-basic.md", "title": "Codex configuration precedence and trust"},
+    {"url": "https://learn.chatgpt.com/docs/agent-configuration/agents-md.md", "title": "Codex instruction discovery"},
+    {"url": "https://learn.chatgpt.com/docs/build-skills.md", "title": "Codex skill discovery"},
+    {"url": "https://learn.chatgpt.com/docs/agent-configuration/subagents.md", "title": "Codex custom agents"},
+    {"url": "https://learn.chatgpt.com/docs/app-server.md", "title": "Codex effective configuration and runtime APIs"}
+  ]
+}

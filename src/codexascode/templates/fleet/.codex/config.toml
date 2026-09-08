@@ -1,0 +1,3 @@
+# Inherit user model, permissions and authentication.
+[agents]
+enabled = true
