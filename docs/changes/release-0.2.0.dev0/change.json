@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
-  "id": "productisation",
-  "title": "Ship a unified portable Codex as Code distribution",
-  "stage": "verified",
+  "id": "release-0.2.0.dev0",
+  "title": "Publish the verified native CaC product prerelease",
+  "stage": "released",
   "files": [
     "intent.md",
     "spec.md",
@@ -17,15 +17,15 @@
       "Use actual CaC lifecycle, ownership and deployment features during product development, record concrete limitations."
     ],
     "verification": [
-      "99 regression tests pass; 12 installed CLI checks pass outside source checkout.",
-      "Reproducible generic wheel builds and real enrolled-host saved-plan apply/readback observed."
+      "99 product regressions pass on release source; fresh built-wheel smoke passes all five outcomes.",
+      "Prior actual Linux native saved apply and packaged worker evidence retained in productisation."
     ],
     "independent_review": [
-      "Read-only independent review found no concrete trust-boundary blocker; spawn-error hypothesis disproved with regression."
+      "Independent read-only release reviewer confirmed tag/version, prerelease classification, CI gating and coverage claims; no concrete blocker."
     ],
-    "release_reference": null,
+    "release_reference": "https://github.com/nielslindor/CaC/releases/tag/v0.2.0.dev0",
     "rollback_operations": [
-      "Explicit previous-package reinstall and service restart; source revert requires refreshed lifecycle evidence."
+      "Reinstall prior pinned package and restart controller; source revert requires refreshed lifecycle evidence; retain host state."
     ],
     "unresolved_blocking_findings": [],
     "source_tree_digest": "6d376d33e59c6605b6f8926514a2031bdde398dd32dd167b35843bc382e10f47"

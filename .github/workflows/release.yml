@@ -28,11 +28,14 @@ jobs:
           python -c 'import os, codexascode; assert os.environ["RELEASE_TAG"] == "v" + codexascode.__version__'
           cac change check "release-${RELEASE_TAG#v}" --stage released
       - run: python tools/package.py
-      - run: python tools/smoke.py --wheel dist/codexascode-0.1.2-py3-none-any.whl
+      - run: python tools/smoke.py --wheel dist/codexascode-*.whl
       - name: Generate checksums
         run: sha256sum dist/*.whl dist/*.tar.gz > dist/SHA256SUMS
       - name: Publish verified packages
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ github.ref_name }}
-        run: gh release create "$RELEASE_TAG" dist/*.whl dist/*.tar.gz dist/SHA256SUMS --verify-tag --title "CodexasCode $RELEASE_TAG" --notes-file CHANGELOG.md
+        run: |
+          flags=()
+          case "$RELEASE_TAG" in *dev*|*a[0-9]*|*b[0-9]*|*rc*) flags+=(--prerelease) ;; esac
+          gh release create "$RELEASE_TAG" dist/*.whl dist/*.tar.gz dist/SHA256SUMS --verify-tag --title "CodexasCode $RELEASE_TAG" --notes-file CHANGELOG.md "${flags[@]}"
