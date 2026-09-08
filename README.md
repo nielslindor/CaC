@@ -73,3 +73,7 @@ The repository uses its own agent roles, SDLC records and gauntlet. CI checks Py
 This is an independent open-source project. It is not an OpenAI product and does not claim NIST certification. MIT licensed.
 
 Workspace owners choose their content policy. New instances select the `workspace` profile in `cac-policy.json`, allowing personal configuration and documents. This public toolkit selects the separate `public` profile for its own publication checks. See [content policy](docs/CONTENT-POLICY.md) for precise checks, overrides and scanner limits.
+
+## Native product preview
+
+The 0.2 development line packages fleet deployment, saved plans, work leases, named jobs, context indexes and SDLC enforcement behind the installed `cac` command. Start with `cac init --root ./workspace --name example --fleet`. Read [the product contract](docs/PRODUCT.md) for the command map, installation boundaries and acceptance limits.

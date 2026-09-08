@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "id": "productisation",
+  "title": "Ship a unified portable Codex as Code distribution",
+  "stage": "verified",
+  "files": [
+    "intent.md",
+    "spec.md",
+    "plan.md",
+    "verification.md",
+    "release.md"
+  ],
+  "evidence": {
+    "acceptance_criteria": [
+      "Installed coherent cac command and generic-only reproducible distribution.",
+      "Saved plan binds source and local ownership; stale plans refuse before writes.",
+      "Use actual CaC lifecycle, ownership and deployment features during product development, record concrete limitations."
+    ],
+    "verification": [
+      "99 regression tests pass; 12 installed CLI checks pass outside source checkout.",
+      "Reproducible generic wheel builds and real enrolled-host saved-plan apply/readback observed."
+    ],
+    "independent_review": [
+      "Read-only independent review found no concrete trust-boundary blocker; spawn-error hypothesis disproved with regression."
+    ],
+    "release_reference": null,
+    "rollback_operations": [
+      "Explicit previous-package reinstall and service restart; source revert requires refreshed lifecycle evidence."
+    ],
+    "unresolved_blocking_findings": [],
+    "source_tree_digest": "cf178a74022302db849f13343e35c81ed4388532a6012dedc8c0a2a2ea5b8060"
+  }
+}

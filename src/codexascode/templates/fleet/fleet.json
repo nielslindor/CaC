@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "enabled": true,
+  "required_environment": [],
+  "codex_version_prefix": "codex-cli 0.153.",
+  "documentation_refresh_hours": 24,
+  "coordination_ref": "refs/heads/cac-coordination",
+  "sdlc": {
+    "change_id": "fleet-bootstrap"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "id": "release-0.2.0.dev0",
+  "title": "Publish the verified native CaC product prerelease",
+  "stage": "released",
+  "files": [
+    "intent.md",
+    "spec.md",
+    "plan.md",
+    "verification.md",
+    "release.md"
+  ],
+  "evidence": {
+    "acceptance_criteria": [
+      "Installed coherent cac command and generic-only reproducible distribution.",
+      "Saved plan binds source and local ownership; stale plans refuse before writes.",
+      "Use actual CaC lifecycle, ownership and deployment features during product development, record concrete limitations."
+    ],
+    "verification": [
+      "99 product regressions pass on release source; fresh built-wheel smoke passes all five outcomes.",
+      "Prior actual Linux native saved apply and packaged worker evidence retained in productisation."
+    ],
+    "independent_review": [
+      "Independent read-only release reviewer confirmed tag/version, prerelease classification, CI gating and coverage claims; no concrete blocker."
+    ],
+    "release_reference": "https://github.com/nielslindor/CaC/releases/tag/v0.2.0.dev0",
+    "rollback_operations": [
+      "Reinstall prior pinned package and restart controller; source revert requires refreshed lifecycle evidence; retain host state."
+    ],
+    "unresolved_blocking_findings": [],
+    "source_tree_digest": "cf178a74022302db849f13343e35c81ed4388532a6012dedc8c0a2a2ea5b8060"
+  }
+}

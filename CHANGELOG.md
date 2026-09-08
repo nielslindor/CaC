@@ -1,3 +1,11 @@
+# 0.2.0.dev0 — native fleet product prerelease
+
+One installed CLI now provides native fleet enrollment and reconciliation, saved deployment plans, work ownership leases, named jobs, indexed documentation and local-memory retrieval, and source-bound SDLC gates. Saved apply refuses stale source, enrollment and managed-file observations. Configured native resources converge through enrolled host controllers.
+
+This is a development prerelease. A real Linux host has exercised native deployment and job execution. macOS service fixtures are tested; actual receiving-Mac deployment is still unverified. Existing tasks retain their loaded context. Credentials and full chat history are not replicated. Package upgrades require explicit installation and service restart.
+
+Install the wheel from this release after checking SHA256SUMS. Run `cac --help` and see docs/PRODUCT.md for the command map and boundaries.
+
 # Changelog
 
 ## 0.1.2

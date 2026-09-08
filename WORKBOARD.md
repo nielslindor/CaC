@@ -7,4 +7,6 @@ This file is the single work ledger for this repository. The primary agent owns 
 | CAC-001 | Ship a portable declarative workspace engine with a complete SDLC and multi-agent gauntlet | Released | v0.1.1 published; release CI, installed published-wheel fresh-clone acceptance, independent instance CI and native role dispatch observed. Evidence: docs/changes/release-0.1.1. |
 | CAC-002 | Respect owner-selected content in generated and private workspaces | Released | v0.1.2 published; 45 regressions, installed-release personal-content acceptance and independent instance CI with workspace profile observed. |
 
+| CAC-003 | Unified installed fleet product with saved plans and native SDLC | Public prerelease delivery | 99 regressions, independent review, reproducible wheel, clean install and actual enrolled-host saved apply. Tagged prerelease and downloaded artifact acceptance tracked in docs/changes/release-0.2.0.dev0; actual macOS receipt remains a stable-product gate. |
+
 Completion requires a public tagged release, passing CI, successful bootstrap from a clean download, idempotent second apply, drift/conflict refusal, and independent review disposition. Hosting a configuration file alone does not prove an agent used it.

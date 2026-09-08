@@ -11,6 +11,7 @@ import sys
 from typing import Any, Iterator
 
 from .lifecycle import source_digest, validate_change
+from .policy import PolicyError, excluded, load_policy
 
 _SKIP = {".git", ".venv", "build", "dist", ".cac", "__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache"}
 _SKIP_FILES = {".DS_Store", ".coverage"}
@@ -44,7 +45,7 @@ def _ignored(parts: tuple[str, ...]) -> bool:
     return parts[:2] == ("docs", "changes") or any(part in _SKIP or part.endswith(".egg-info") for part in parts)
 
 
-def _files(root: Path) -> Iterator[tuple[Path, str | None]]:
+def _files(root: Path, local_roots: tuple[str, ...] = ()) -> Iterator[tuple[Path, str | None]]:
     """Yield ordinary files and discovered symlinks without entering either."""
     for current, directories, filenames in os.walk(root, topdown=True, followlinks=False):
         current_path = Path(current)
@@ -55,7 +56,7 @@ def _files(root: Path) -> Iterator[tuple[Path, str | None]]:
             parts = rel_current.parts + (name,)
             if path.is_symlink():
                 yield path, "symlink"
-            elif _ignored(parts):
+            elif _ignored(parts) or excluded((rel_current / name).as_posix() if rel_current.parts else name, local_roots):
                 continue
             else:
                 kept.append(name)
@@ -106,32 +107,11 @@ def _policy_profile(root: Path, override: str | None) -> tuple[str | None, bool]
     A policy is deliberately tiny and strict.  In particular, a malformed
     policy cannot be bypassed by supplying an API or CLI override.
     """
-    policy = root / _POLICY_NAME
-    if policy.is_symlink() or (policy.exists() and not policy.is_file()):
+    try:
+        selected, _ = load_policy(root, override)
+    except PolicyError:
         return None, False
-    if policy.exists():
-        try:
-            value = json.loads(policy.read_text(encoding="utf-8"))
-        except (OSError, UnicodeError, json.JSONDecodeError):
-            return None, False
-        schema_version = value.get("schema_version") if isinstance(value, dict) else None
-        policy_profile = value.get("profile") if isinstance(value, dict) else None
-        if (
-            not isinstance(value, dict)
-            or set(value) != {"schema_version", "profile"}
-            or isinstance(schema_version, bool)
-            or not isinstance(schema_version, int)
-            or schema_version != 1
-            or not isinstance(policy_profile, str)
-            or policy_profile not in _PROFILES
-        ):
-            return None, False
-        selected = policy_profile
-    else:
-        selected = "public"
-    if override is not None and (not isinstance(override, str) or override not in _PROFILES):
-        return None, False
-    return override or selected, True
+    return selected, True
 
 
 def _lifecycle_checks(root: Path, checks: list[dict[str, str]], failures: list[dict[str, str]]) -> None:
@@ -170,15 +150,23 @@ def run_gauntlet(root: str | Path = ".", run_tests: bool = False, *, profile: st
     checks: list[dict[str, str]] = []
     try:
         root_path = _safe_root(root)
+    except (OSError, ValueError):
+        return {"status": "fail", "source_tree_digest": None, "profile": None, "checks": checks, "failures": [{"rule": "root", "path": str(root)}]}
+    try:
+        selected_profile, local_roots = load_policy(root_path, profile)
+    except (OSError, ValueError) as exc:
+        message = str(exc)
+        rule = "local-boundary" if "local-boundary" in message else "policy"
+        return {"status": "fail", "source_tree_digest": None, "profile": None, "checks": checks, "failures": [{"rule": rule, "path": _POLICY_NAME}]}
+    try:
         digest = source_digest(root_path)
     except (OSError, ValueError):
         return {"status": "fail", "source_tree_digest": None, "profile": None, "checks": checks, "failures": [{"rule": "root", "path": str(root)}]}
-    selected_profile, valid_policy = _policy_profile(root_path, profile)
-    if not valid_policy:
-        return {"status": "fail", "source_tree_digest": digest, "profile": None, "checks": checks, "failures": [{"rule": "policy", "path": _POLICY_NAME}]}
     workspace = selected_profile == "workspace"
-    for path, kind in _files(root_path):
+    for path, kind in _files(root_path, local_roots):
         relative = path.relative_to(root_path).as_posix()
+        if excluded(relative, local_roots):
+            continue
         if kind:
             failures.append({"rule": "symlink", "path": relative})
             continue
