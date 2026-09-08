@@ -87,11 +87,11 @@ class FleetTests(unittest.TestCase):
  def test_service_symlink_refused(self):
   from codexascode.runtime.cac_fleet import install_service
   state=self.states[0];victim=self.base/'victim';victim.write_text('keep')
-  units=self.base/'one/.config/systemd/user';units.mkdir(parents=True)
-  (units/'cac-fleet.service').symlink_to(victim)
-  with patch('codexascode.runtime.cac_fleet.Path.home',return_value=self.base/'one'), patch('codexascode.runtime.cac_fleet.subprocess.run') as command:
-   with self.assertRaises(FleetError):install_service(state)
-   command.assert_not_called()
+  for platform,relative in [('linux','.config/systemd/user/cac-fleet.service'),('darwin','Library/LaunchAgents/dev.cac.fleet.plist')]:
+   unit=self.base/'one'/relative;unit.parent.mkdir(parents=True,exist_ok=True);unit.symlink_to(victim)
+   with self.subTest(platform=platform),patch('codexascode.runtime.cac_fleet.sys.platform',platform),patch('codexascode.runtime.cac_fleet.Path.home',return_value=self.base/'one'),patch('codexascode.runtime.cac_fleet.subprocess.run') as command:
+    with self.assertRaises(FleetError):install_service(state)
+    command.assert_not_called()
   self.assertEqual(victim.read_text(),'keep')
 class NativeTests(unittest.TestCase):
  def test_native_readback_and_existing_projects_preserved(self):

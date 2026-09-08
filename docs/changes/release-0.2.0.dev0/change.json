@@ -28,6 +28,6 @@
       "Reinstall prior pinned package and restart controller; source revert requires refreshed lifecycle evidence; retain host state."
     ],
     "unresolved_blocking_findings": [],
-    "source_tree_digest": "1243913b949ae6e092c6fb3c8e9a780028377467a422b54c6dfc041cfde29c6a"
+    "source_tree_digest": "cf178a74022302db849f13343e35c81ed4388532a6012dedc8c0a2a2ea5b8060"
   }
 }
