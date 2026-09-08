@@ -8,7 +8,7 @@ from codexascode.runtime.cac_coordination import LeaseDenied
 
 class JobTests(unittest.TestCase):
     def setUp(self):
-        self.tmp=tempfile.TemporaryDirectory(); self.root=Path(self.tmp.name); self.remote=self.root/'r.git'
+        self.tmp=tempfile.TemporaryDirectory(); self.root=Path(self.tmp.name).resolve(); self.remote=self.root/'r.git'
         subprocess.run(['git','init','--bare',str(self.remote)],check=True,capture_output=True)
         self.q1=JobQueue(str(self.remote),self.root/'a'); self.q2=JobQueue(str(self.remote),self.root/'b')
     def tearDown(self): self.tmp.cleanup()

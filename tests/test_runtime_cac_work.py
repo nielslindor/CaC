@@ -12,7 +12,7 @@ from codexascode.runtime.cac_coordination import CoordinationStore
 
 class WorkRunnerTests(unittest.TestCase):
     def setUp(self):
-        self.tmp = tempfile.TemporaryDirectory(); self.root = Path(self.tmp.name)
+        self.tmp = tempfile.TemporaryDirectory(); self.root = Path(self.tmp.name).resolve()
         self.remote = self.root / "coord.git"
         subprocess.run(["git", "init", "--bare", str(self.remote)], check=True, capture_output=True)
         self.project = self.root / "project"; self.project.mkdir()

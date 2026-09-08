@@ -16,7 +16,7 @@ class BadNative(FakeNative):
  def activate(self,root):raise FleetError('native project configuration is not loaded')
 class FleetTests(unittest.TestCase):
  def setUp(self):
-  self.tmp=tempfile.TemporaryDirectory();self.addCleanup(self.tmp.cleanup);self.base=Path(self.tmp.name)
+  self.tmp=tempfile.TemporaryDirectory();self.addCleanup(self.tmp.cleanup);self.base=Path(self.tmp.name).resolve()
   self.src=self.base/'src';self.src.mkdir();run('init','-b','deploy',self.src)
   run('config','user.name','Fixture',cwd=self.src);run('config','user.email','fixture@localhost',cwd=self.src)
   for d in ['.codex','.agents/skills/sample']:(self.src/d).mkdir(parents=True,exist_ok=True)
@@ -97,7 +97,7 @@ class NativeTests(unittest.TestCase):
  def test_native_readback_and_existing_projects_preserved(self):
   from codexascode.runtime.cac_fleet import Native
   with tempfile.TemporaryDirectory() as tmp:
-   root=Path(tmp);(root/'.codex').mkdir();(root/'.codex/config.toml').write_text('[agents]\nenabled = true\n')
+   root=Path(tmp).resolve();(root/'.codex').mkdir();(root/'.codex/config.toml').write_text('[agents]\nenabled = true\n')
    class Client:
     user={'projects':{'/existing':{'trust_level':'trusted','custom':'preserve'}}}
     desktop={}

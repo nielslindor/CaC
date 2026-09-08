@@ -28,6 +28,6 @@
       "Explicit previous-package reinstall and service restart; source revert requires refreshed lifecycle evidence."
     ],
     "unresolved_blocking_findings": [],
-    "source_tree_digest": "6d376d33e59c6605b6f8926514a2031bdde398dd32dd167b35843bc382e10f47"
+    "source_tree_digest": "1243913b949ae6e092c6fb3c8e9a780028377467a422b54c6dfc041cfde29c6a"
   }
 }

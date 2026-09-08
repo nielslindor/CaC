@@ -10,7 +10,7 @@ class Native:
  def activate(self,root):return {'native':True}
 class SavedPlanTests(unittest.TestCase):
  def setUp(self):
-  self.tmp=tempfile.TemporaryDirectory();self.addCleanup(self.tmp.cleanup);self.root=Path(self.tmp.name);self.src=self.root/'src';self.src.mkdir();git('init','-b','deploy',self.src)
+  self.tmp=tempfile.TemporaryDirectory();self.addCleanup(self.tmp.cleanup);self.root=Path(self.tmp.name).resolve();self.src=self.root/'src';self.src.mkdir();git('init','-b','deploy',self.src)
   git('config','user.name','Fixture',cwd=self.src);git('config','user.email','fixture@localhost',cwd=self.src)
   (self.src/'fleet.json').write_text(json.dumps({'schema_version':1,'enabled':True,'required_environment':[]}));(self.src/'AGENTS.md').write_text('fixture')
   self.commit();self.remote=self.root/'remote.git';git('clone','--bare',self.src,self.remote)

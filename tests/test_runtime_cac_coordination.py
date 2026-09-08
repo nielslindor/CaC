@@ -11,7 +11,7 @@ from codexascode.runtime.cac_coordination import CoordinationStore, LeaseConflic
 class CoordinationTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
-        root = Path(self.tmp.name)
+        root = Path(self.tmp.name).resolve()
         self.remote = root / "remote.git"
         subprocess.run(["git", "init", "--bare", str(self.remote)], check=True, capture_output=True)
         self.a = CoordinationStore(str(self.remote), root / "cache-a")
@@ -23,8 +23,8 @@ class CoordinationTests(unittest.TestCase):
     def test_credentials_symlink_and_noop_boundaries(self):
         from codexascode.runtime.cac_coordination import CoordinationError
         with self.assertRaises(CoordinationError):
-            CoordinationStore('https://user:secret@example.com/repo',Path(self.tmp.name)/'bad')
-        link=Path(self.tmp.name)/'link';link.symlink_to(self.a.cache_dir,target_is_directory=True)
+            CoordinationStore('https://user:secret@example.com/repo',Path(self.tmp.name).resolve()/'bad')
+        link=Path(self.tmp.name).resolve()/'link';link.symlink_to(self.a.cache_dir,target_is_directory=True)
         with self.assertRaises(CoordinationError):
             CoordinationStore(str(self.remote),link/'nested')
         self.assertIsNone(self.a._mutate(lambda state:None))

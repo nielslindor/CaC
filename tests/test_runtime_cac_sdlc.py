@@ -6,7 +6,7 @@ sys.path.insert(0, str(Path(__file__).parents[1]))
 from codexascode.runtime import cac_sdlc
 
 class SdlcTests(unittest.TestCase):
-    def setUp(self): self.tmp=tempfile.TemporaryDirectory(); self.root=Path(self.tmp.name)
+    def setUp(self): self.tmp=tempfile.TemporaryDirectory(); self.root=Path(self.tmp.name).resolve()
     def tearDown(self): self.tmp.cleanup()
     def fixture(self, stage='verified', result='pass'):
         (self.root/'docs/changes/x').mkdir(parents=True, exist_ok=True); (self.root/'fleet.json').write_text(json.dumps({'sdlc':{'change_id':'x'}}))
