@@ -30,7 +30,12 @@ _AGENT_KEYS = {
     "model_reasoning_effort", "sandbox_mode", "mcp_servers", "skills",
 }
 _AGENT_REQUIRED = {"name", "description", "developer_instructions"}
-_AGENT_REASONING_EFFORTS = {"low", "medium", "high", "xhigh", "max", "ultra"}
+_AGENT_COMPATIBILITY_BASELINE = "2026-09-20"
+_AGENT_COMPATIBILITY_SOURCES = (
+    "https://learn.chatgpt.com/docs/agent-configuration/subagents",
+    "https://learn.chatgpt.com/docs/config-file/config-reference",
+)
+_AGENT_REASONING_EFFORTS = {"low", "medium", "high", "xhigh", "max", "ultra", "minimal"}
 _AGENT_SANDBOX_MODES = {"read-only", "workspace-write", "danger-full-access"}
 _MCP_SERVER_KEYS = {
     "args", "auth", "bearer_token_env_var", "command", "cwd",
@@ -102,6 +107,12 @@ def _agent_config_errors(value: Any) -> list[dict[str, str]]:
     def error(field: str, message: str) -> None:
         errors.append({"field": field, "message": message})
 
+    def enum(field: str, item: Any, allowed: set[str]) -> None:
+        if not isinstance(item, str):
+            error(field, "must be a string; expected one of: " + ", ".join(sorted(allowed)))
+        elif item not in allowed:
+            error(field, "must be one of: " + ", ".join(sorted(allowed)))
+
     if not isinstance(value, dict):
         return [{"field": "agent", "message": "custom agent must be a TOML table"}]
     for key in sorted(set(value) - _AGENT_KEYS):
@@ -113,10 +124,10 @@ def _agent_config_errors(value: Any) -> list[dict[str, str]]:
             error(key, "must be a non-empty string")
     if "model" in value and (not isinstance(value["model"], str) or not value["model"].strip()):
         error("model", "must be a non-empty string when provided")
-    if "model_reasoning_effort" in value and value["model_reasoning_effort"] not in _AGENT_REASONING_EFFORTS:
-        error("model_reasoning_effort", "must be one of: " + ", ".join(sorted(_AGENT_REASONING_EFFORTS)))
-    if "sandbox_mode" in value and value["sandbox_mode"] not in _AGENT_SANDBOX_MODES:
-        error("sandbox_mode", "must be one of: " + ", ".join(sorted(_AGENT_SANDBOX_MODES)))
+    if "model_reasoning_effort" in value:
+        enum("model_reasoning_effort", value["model_reasoning_effort"], _AGENT_REASONING_EFFORTS)
+    if "sandbox_mode" in value:
+        enum("sandbox_mode", value["sandbox_mode"], _AGENT_SANDBOX_MODES)
 
     def strings(field: str, item: Any) -> None:
         if not isinstance(item, list) or not all(isinstance(v, str) and v.strip() for v in item):
@@ -157,13 +168,12 @@ def _agent_config_errors(value: Any) -> list[dict[str, str]]:
                         for index, entry in enumerate(entries):
                             if isinstance(entry, str) and entry.strip():
                                 continue
-                            if not isinstance(entry, dict) or set(entry) - {"name", "source"} or not isinstance(entry.get("name"), str) or not entry["name"].strip() or entry.get("source", "local") not in {"local", "remote"}:
+                            if not isinstance(entry, dict) or set(entry) - {"name", "source"} or not isinstance(entry.get("name"), str) or not entry["name"].strip() or not isinstance(entry.get("source", "local"), str) or entry.get("source", "local") not in {"local", "remote"}:
                                 error(f"{prefix}.env_vars[{index}]", "must contain a name and optional local/remote source")
                 for key in ("auth", "experimental_environment", "default_tools_approval_mode"):
                     if key in server:
                         allowed = {"auth": {"oauth", "chatgpt"}, "experimental_environment": {"local", "remote"}, "default_tools_approval_mode": _MCP_APPROVAL_MODES}[key]
-                        if server[key] not in allowed:
-                            error(f"{prefix}.{key}", "must be one of: " + ", ".join(sorted(allowed)))
+                        enum(f"{prefix}.{key}", server[key], allowed)
                 for key in ("startup_timeout_ms", "startup_timeout_sec", "tool_timeout_sec"):
                     if key in server and (not isinstance(server[key], (int, float)) or isinstance(server[key], bool) or not math.isfinite(server[key]) or server[key] < 0):
                         error(f"{prefix}.{key}", "must be a non-negative number")
@@ -185,8 +195,8 @@ def _agent_config_errors(value: Any) -> list[dict[str, str]]:
                         for tool, config in tools.items():
                             if not isinstance(config, dict) or set(config) - {"approval_mode", "output_token_limit"}:
                                 error(f"{prefix}.tools.{tool}", "must contain only approval_mode and output_token_limit")
-                            elif "approval_mode" in config and config["approval_mode"] not in _MCP_APPROVAL_MODES:
-                                error(f"{prefix}.tools.{tool}.approval_mode", "has an invalid approval mode")
+                            elif "approval_mode" in config:
+                                enum(f"{prefix}.tools.{tool}.approval_mode", config["approval_mode"], _MCP_APPROVAL_MODES)
                             elif "output_token_limit" in config and (not isinstance(config["output_token_limit"], int) or isinstance(config["output_token_limit"], bool) or config["output_token_limit"] <= 0):
                                 error(f"{prefix}.tools.{tool}.output_token_limit", "must be a positive integer")
     skills = value.get("skills")
@@ -362,7 +372,7 @@ def run_gauntlet(root: str | Path = ".", run_tests: bool = False, *, profile: st
                 continue
             if _agent_config_path(path.relative_to(root_path)):
                 for diagnostic in _agent_config_errors(parsed):
-                    failures.append({"rule": "agent-config", "path": relative, "kind": "compatibility", **diagnostic})
+                    failures.append({"rule": "agent-config", "path": relative, "kind": "compatibility", "baseline": _AGENT_COMPATIBILITY_BASELINE, "sources": list(_AGENT_COMPATIBILITY_SOURCES), **diagnostic})
     _lifecycle_checks(root_path, checks, failures)
     if run_tests:
         tests = root_path / "tests"

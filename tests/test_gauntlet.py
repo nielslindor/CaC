@@ -171,6 +171,38 @@ enabled = "yes"
         self.assertIn("skills.config[0].path", diagnostics)
         self.assertIn("skills.config[0].enabled", diagnostics)
 
+    def test_agent_schema_reports_container_values_for_every_enum(self):
+        agent = self.root / ".codex/agents/reviewer.toml"
+        agent.parent.mkdir(parents=True)
+        cases = {
+            "model_reasoning_effort": "[]",
+            "sandbox_mode": "{}",
+            "auth": "[]",
+            "experimental_environment": "[]",
+            "default_tools_approval_mode": "[]",
+            "env_vars_source": "[]",
+            "tool_approval_mode": "{}",
+        }
+        for field, value in cases.items():
+            env_vars = "env_vars = [{name = \"X\", source = " + (value if field == "env_vars_source" else '\"local\"') + "}]"
+            tool = "[mcp_servers.docs.tools.search]\napproval_mode = " + (value if field == "tool_approval_mode" else '"prompt"')
+            agent.write_text(f'''name = "reviewer"
+description = "reviews"
+developer_instructions = "read only"
+model_reasoning_effort = {value if field == "model_reasoning_effort" else '"medium"'}
+sandbox_mode = {value if field == "sandbox_mode" else '"read-only"'}
+
+[mcp_servers.docs]
+auth = {value if field == "auth" else '"oauth"'}
+experimental_environment = {value if field == "experimental_environment" else '"local"'}
+default_tools_approval_mode = {value if field == "default_tools_approval_mode" else '"prompt"'}
+{env_vars}
+{tool}
+''')
+            result = run_gauntlet(self.root)
+            self.assertEqual(result["status"], "fail", field)
+            self.assertTrue(any(item["rule"] == "agent-config" for item in result["failures"]), field)
+
     def test_historical_lifecycle_digest_does_not_compare_current_tree(self):
         self.assertEqual(create_change(self.root, "Demo", "demo"), 0)
         record = self.root / "docs/changes/demo"
