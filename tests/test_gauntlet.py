@@ -120,11 +120,56 @@ class GauntletTests(unittest.TestCase):
     def test_agent_schema_applies_to_template_paths(self):
         agent = self.root / "src/template/.codex/agents/reviewer.toml"
         agent.parent.mkdir(parents=True)
-        agent.write_text('name = "reviewer"\ndescription = "reviews"\ndeveloper_instructions = "read only"\nsandbox_mode = "read-only"\n')
+        agent.write_text('''name = "reviewer"
+description = "reviews"
+developer_instructions = "read only"
+model = "gpt-5.6-terra"
+model_reasoning_effort = "high"
+sandbox_mode = "read-only"
+
+[mcp_servers.docs]
+url = "https://example.test/mcp"
+startup_timeout_sec = 20
+enabled_tools = ["search"]
+
+[skills]
+[[skills.config]]
+path = "/tmp/skill"
+enabled = false
+''')
         self.assertEqual(run_gauntlet(self.root)["status"], "pass")
         agent.write_text('name = "reviewer"\ndescription = "reviews"\nunknown = "no"\n')
         result = run_gauntlet(self.root)
         self.assertIn("agent-config", {item["rule"] for item in result["failures"]})
+        self.assertIn("unknown", {item["field"] for item in result["failures"] if item["rule"] == "agent-config"})
+
+    def test_agent_schema_rejects_invalid_types_enums_and_nested_values(self):
+        agent = self.root / ".codex/agents/reviewer.toml"
+        agent.parent.mkdir(parents=True)
+        agent.write_text('''name = "reviewer"
+description = "reviews"
+developer_instructions = "read only"
+model_reasoning_effort = "reckless"
+sandbox_mode = "full-access"
+
+[mcp_servers.docs]
+enabled_tools = "search"
+startup_timeout_sec = -1
+
+[skills]
+[[skills.config]]
+path = 42
+enabled = "yes"
+''')
+        result = run_gauntlet(self.root)
+        diagnostics = {item["field"]: item["message"] for item in result["failures"] if item["rule"] == "agent-config"}
+        self.assertEqual(result["status"], "fail")
+        self.assertIn("model_reasoning_effort", diagnostics)
+        self.assertIn("sandbox_mode", diagnostics)
+        self.assertIn("mcp_servers.docs.enabled_tools", diagnostics)
+        self.assertIn("mcp_servers.docs.startup_timeout_sec", diagnostics)
+        self.assertIn("skills.config[0].path", diagnostics)
+        self.assertIn("skills.config[0].enabled", diagnostics)
 
     def test_historical_lifecycle_digest_does_not_compare_current_tree(self):
         self.assertEqual(create_change(self.root, "Demo", "demo"), 0)

@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "id": "issue-10-native-agent-contract",
+  "title": "Validate documented native custom-agent configuration contract",
+  "stage": "planned",
+  "files": ["intent.md", "spec.md", "plan.md", "verification.md", "release.md"],
+  "evidence": {
+    "acceptance_criteria": [
+      "Supported custom-agent model, reasoning, MCP, and skills fields pass validation.",
+      "Invalid enums, types, nested values, and unknown fields fail with field diagnostics.",
+      "Existing generated agents continue to pass the gauntlet."
+    ],
+    "verification": [],
+    "independent_review": [],
+    "release_reference": null,
+    "rollback_operations": [],
+    "unresolved_blocking_findings": [],
+    "source_tree_digest": null
+  }
+}
