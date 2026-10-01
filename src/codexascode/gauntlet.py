@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 import os
 from pathlib import Path
 import re
@@ -24,8 +25,27 @@ _PATTERNS = [
     ("private-ip", re.compile(rf"\b(?:10(?:\.{_OCTET}){{3}}|192\.168(?:\.{_OCTET}){{2}}|172\.(?:1[6-9]|2\d|3[01])(?:\.{_OCTET}){{2}})\b")),
 ]
 _MD_LINK = re.compile(r"!?(?:\[[^\]]*\])\(([^)\s]+)(?:\s+['\"][^)]*)?\)")
-_AGENT_KEYS = {"name", "description", "developer_instructions", "sandbox_mode"}
+_AGENT_KEYS = {
+    "name", "description", "developer_instructions", "model",
+    "model_reasoning_effort", "sandbox_mode", "mcp_servers", "skills",
+}
 _AGENT_REQUIRED = {"name", "description", "developer_instructions"}
+_AGENT_COMPATIBILITY_BASELINE = "2026-09-20"
+_AGENT_COMPATIBILITY_SOURCES = (
+    "https://learn.chatgpt.com/docs/agent-configuration/subagents",
+    "https://learn.chatgpt.com/docs/config-file/config-reference",
+)
+_AGENT_REASONING_EFFORTS = {"low", "medium", "high", "xhigh", "max", "ultra", "minimal"}
+_AGENT_SANDBOX_MODES = {"read-only", "workspace-write", "danger-full-access"}
+_MCP_SERVER_KEYS = {
+    "args", "auth", "bearer_token_env_var", "command", "cwd",
+    "default_tools_approval_mode", "disabled_tools", "enabled", "enabled_tools",
+    "env", "env_http_headers", "env_vars", "experimental_environment",
+    "http_headers", "http_headers_helper", "oauth_resource", "oauth",
+    "required", "scopes", "startup_timeout_ms", "startup_timeout_sec",
+    "tool_timeout_sec", "tools", "url",
+}
+_MCP_APPROVAL_MODES = {"auto", "prompt", "writes", "approve"}
 _POLICY_NAME = "cac-policy.json"
 _PROFILES = {"workspace", "public"}
 
@@ -76,12 +96,132 @@ def _agent_config_path(relative: Path) -> bool:
     return relative.suffix == ".toml" and any(parts[index:index + 2] == (".codex", "agents") for index in range(len(parts) - 1))
 
 
+def _agent_config_errors(value: Any) -> list[dict[str, str]]:
+    """Validate the documented custom-agent compatibility surface.
+
+    This is intentionally a compatibility check, rather than a local policy:
+    model names and paths are open strings, while documented enums and nested
+    TOML shapes are checked strictly so typos cannot silently pass.
+    """
+    errors: list[dict[str, str]] = []
+    def error(field: str, message: str) -> None:
+        errors.append({"field": field, "message": message})
+
+    def enum(field: str, item: Any, allowed: set[str]) -> None:
+        if not isinstance(item, str):
+            error(field, "must be a string; expected one of: " + ", ".join(sorted(allowed)))
+        elif item not in allowed:
+            error(field, "must be one of: " + ", ".join(sorted(allowed)))
+
+    if not isinstance(value, dict):
+        return [{"field": "agent", "message": "custom agent must be a TOML table"}]
+    for key in sorted(set(value) - _AGENT_KEYS):
+        error(key, "unsupported custom-agent field")
+    for key in sorted(_AGENT_REQUIRED - set(value)):
+        error(key, "required custom-agent field is missing")
+    for key in _AGENT_REQUIRED:
+        if key in value and (not isinstance(value[key], str) or not value[key].strip()):
+            error(key, "must be a non-empty string")
+    if "model" in value and (not isinstance(value["model"], str) or not value["model"].strip()):
+        error("model", "must be a non-empty string when provided")
+    if "model_reasoning_effort" in value:
+        enum("model_reasoning_effort", value["model_reasoning_effort"], _AGENT_REASONING_EFFORTS)
+    if "sandbox_mode" in value:
+        enum("sandbox_mode", value["sandbox_mode"], _AGENT_SANDBOX_MODES)
+
+    def strings(field: str, item: Any) -> None:
+        if not isinstance(item, list) or not all(isinstance(v, str) and v.strip() for v in item):
+            error(field, "must be an array of non-empty strings")
+    def string_map(field: str, item: Any) -> None:
+        if not isinstance(item, dict) or not all(isinstance(k, str) and isinstance(v, str) for k, v in item.items()):
+            error(field, "must be a string-to-string table")
+
+    servers = value.get("mcp_servers")
+    if servers is not None:
+        if not isinstance(servers, dict):
+            error("mcp_servers", "must be a table keyed by server id")
+        else:
+            for server_id, server in servers.items():
+                prefix = f"mcp_servers.{server_id}"
+                if not isinstance(server, dict):
+                    error(prefix, "must be a TOML table")
+                    continue
+                for key in sorted(set(server) - _MCP_SERVER_KEYS):
+                    error(f"{prefix}.{key}", "unsupported MCP server field")
+                for key in ("url", "command", "cwd", "bearer_token_env_var", "http_headers_helper", "oauth_resource"):
+                    if key in server and (not isinstance(server[key], str) or not server[key].strip()):
+                        error(f"{prefix}.{key}", "must be a non-empty string")
+                for key in ("enabled", "required"):
+                    if key in server and not isinstance(server[key], bool):
+                        error(f"{prefix}.{key}", "must be a boolean")
+                for key in ("args", "enabled_tools", "disabled_tools", "scopes"):
+                    if key in server:
+                        strings(f"{prefix}.{key}", server[key])
+                for key in ("env", "env_http_headers", "http_headers"):
+                    if key in server:
+                        string_map(f"{prefix}.{key}", server[key])
+                if "env_vars" in server:
+                    entries = server["env_vars"]
+                    if not isinstance(entries, list):
+                        error(f"{prefix}.env_vars", "must be an array of strings or name/source tables")
+                    else:
+                        for index, entry in enumerate(entries):
+                            if isinstance(entry, str) and entry.strip():
+                                continue
+                            if not isinstance(entry, dict) or set(entry) - {"name", "source"} or not isinstance(entry.get("name"), str) or not entry["name"].strip() or not isinstance(entry.get("source", "local"), str) or entry.get("source", "local") not in {"local", "remote"}:
+                                error(f"{prefix}.env_vars[{index}]", "must contain a name and optional local/remote source")
+                for key in ("auth", "experimental_environment", "default_tools_approval_mode"):
+                    if key in server:
+                        allowed = {"auth": {"oauth", "chatgpt"}, "experimental_environment": {"local", "remote"}, "default_tools_approval_mode": _MCP_APPROVAL_MODES}[key]
+                        enum(f"{prefix}.{key}", server[key], allowed)
+                for key in ("startup_timeout_ms", "startup_timeout_sec", "tool_timeout_sec"):
+                    if key in server and (not isinstance(server[key], (int, float)) or isinstance(server[key], bool) or not math.isfinite(server[key]) or server[key] < 0):
+                        error(f"{prefix}.{key}", "must be a non-negative number")
+                if "oauth" in server:
+                    oauth = server["oauth"]
+                    if not isinstance(oauth, dict) or set(oauth) - {"callback_port", "callback_url", "client_id"}:
+                        error(f"{prefix}.oauth", "must contain only callback_port, callback_url, and client_id")
+                    else:
+                        for key in ("callback_url", "client_id"):
+                            if key in oauth and (not isinstance(oauth[key], str) or not oauth[key].strip()):
+                                error(f"{prefix}.oauth.{key}", "must be a non-empty string")
+                        if "callback_port" in oauth and (not isinstance(oauth["callback_port"], int) or isinstance(oauth["callback_port"], bool) or oauth["callback_port"] <= 0):
+                            error(f"{prefix}.oauth.callback_port", "must be a positive integer")
+                if "tools" in server:
+                    tools = server["tools"]
+                    if not isinstance(tools, dict):
+                        error(f"{prefix}.tools", "must be a table keyed by tool name")
+                    else:
+                        for tool, config in tools.items():
+                            if not isinstance(config, dict) or set(config) - {"approval_mode", "output_token_limit"}:
+                                error(f"{prefix}.tools.{tool}", "must contain only approval_mode and output_token_limit")
+                            elif "approval_mode" in config:
+                                enum(f"{prefix}.tools.{tool}.approval_mode", config["approval_mode"], _MCP_APPROVAL_MODES)
+                            elif "output_token_limit" in config and (not isinstance(config["output_token_limit"], int) or isinstance(config["output_token_limit"], bool) or config["output_token_limit"] <= 0):
+                                error(f"{prefix}.tools.{tool}.output_token_limit", "must be a positive integer")
+    skills = value.get("skills")
+    if skills is not None:
+        if not isinstance(skills, dict) or set(skills) - {"config"}:
+            error("skills", "must contain only config")
+        elif "config" in skills:
+            config = skills["config"]
+            if not isinstance(config, list):
+                error("skills.config", "must be an array of tables")
+            else:
+                for index, item in enumerate(config):
+                    field = f"skills.config[{index}]"
+                    if not isinstance(item, dict) or set(item) - {"enabled", "path"}:
+                        error(field, "must contain only enabled and path")
+                    else:
+                        if "enabled" in item and not isinstance(item["enabled"], bool):
+                            error(f"{field}.enabled", "must be a boolean")
+                        if "path" in item and (not isinstance(item["path"], str) or not item["path"].strip()):
+                            error(f"{field}.path", "must be a non-empty string")
+    return errors
+
+
 def _valid_agent_config(value: Any) -> bool:
-    if not isinstance(value, dict) or not _AGENT_REQUIRED.issubset(value) or set(value) - _AGENT_KEYS:
-        return False
-    if not all(isinstance(value[key], str) and value[key].strip() for key in _AGENT_REQUIRED):
-        return False
-    return "sandbox_mode" not in value or (isinstance(value["sandbox_mode"], str) and value["sandbox_mode"].strip())
+    return not _agent_config_errors(value)
 
 
 def _link_target_is_safe(root: Path, source: Path, link: str) -> bool:
@@ -230,8 +370,9 @@ def run_gauntlet(root: str | Path = ".", run_tests: bool = False, *, profile: st
             except (ValueError, TypeError):
                 failures.append({"rule": "parse", "path": relative})
                 continue
-            if _agent_config_path(path.relative_to(root_path)) and not _valid_agent_config(parsed):
-                failures.append({"rule": "agent-config", "path": relative})
+            if _agent_config_path(path.relative_to(root_path)):
+                for diagnostic in _agent_config_errors(parsed):
+                    failures.append({"rule": "agent-config", "path": relative, "kind": "compatibility", "baseline": _AGENT_COMPATIBILITY_BASELINE, "sources": list(_AGENT_COMPATIBILITY_SOURCES), **diagnostic})
     _lifecycle_checks(root_path, checks, failures)
     if run_tests:
         tests = root_path / "tests"
