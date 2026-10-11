@@ -13,3 +13,15 @@ body:
       label: Scope, constraints and provider effects
     validations:
       required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance and existing components
+      description: Name the changed contract and observable completion test. Reuse native/provider features instead of retesting or rebuilding their availability.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence, remaining work and owner
+      description: Link dated evidence. For a blocker, name the unmet criterion, observed cause and owner action; distinguish historical or unavailable coverage from current failure.
