@@ -7,7 +7,7 @@ Describe the concrete trigger, user outcome and observed change. Link the owning
 - Changed contract and completion test:
 - Existing native/provider behavior reused:
 - Focused check, source revision and observed result:
-- Review findings and disposition:
+- Independent review, identity and finding disposition:
 - Material limits; rollout/rollback when this PR changes deployment:
 
 Test the behavior this PR adds or changes. Reuse sufficient checks and dated evidence for unchanged source. Built-in Codex commands need no separate acceptance run merely to prove they exist.
