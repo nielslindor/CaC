@@ -1,5 +1,11 @@
 # CodexasCode agent entry point
 
+## Development stopped — 23 October 2026
+
+Niels has cancelled development of this repository. Preserve the existing source and history. Stop implementation, fixes, dependency maintenance, releases and merges; resume only on a later explicit instruction from Niels. The workflow and backlog below are retained as history, not authorization to continue.
+
+## Retained workflow
+
 Read `WORKBOARD.md` for current outcomes and `AGENT-WORKFLOW.md` for ownership and SDLC policy. Keep the user's latest explicit correction authoritative. Retrieve relevant context before asking them to repeat it.
 
 For substantive work, use the `start-change` skill to create or resume linked intent, specification, plan, verification and release records. The primary agent owns the workboard and acceptance.
